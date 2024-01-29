@@ -11,6 +11,14 @@ path = "src/lib.rs"
 name = "rthread-test"
 path = "src/bin/rthread-test.rs"
 
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
