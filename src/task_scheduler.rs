@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
-use std::time::{Instant,Duration};
+use std::time::{Duration, Instant};
 
 pub type Task<T> = Box<dyn FnOnce() -> T + Send + 'static>;
 
@@ -13,7 +13,7 @@ trait Executable {
     );
 }
 
-impl<T: Send + 'static> Executable for (Box<dyn FnOnce() -> T + Send + 'static>, mpsc::Sender<T>) {
+impl<T: Send + 'static> Executable for (Task<T>, mpsc::Sender<T>) {
     fn execute(
         self: Box<Self>,
         time_cost_table: Arc<Mutex<HashMap<u64, Duration>>>,
@@ -78,7 +78,7 @@ impl TaskScheduler {
         }
     }
 
-    pub fn schedule_task<T: 'static + Send>(
+    pub fn add_task<T: 'static + Send>(
         &mut self,
         task: impl FnOnce() -> T + Send + 'static,
     ) -> mpsc::Receiver<T> {
@@ -87,10 +87,7 @@ impl TaskScheduler {
         let task = Box::new(task);
 
         let task_with_result = TaskWithResult {
-            task: Box::new((
-                task as Box<dyn FnOnce() -> T + Send + 'static>,
-                result_sender,
-            )),
+            task: Box::new((task as Task<T>, result_sender)),
             time_cost_table: Arc::clone(&self.time_cost_table),
             function_id,
         };

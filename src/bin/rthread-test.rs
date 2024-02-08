@@ -26,7 +26,7 @@ fn main() {
                 fibonacci(i)
             };
 
-            scheduler.schedule_task(closure)
+            scheduler.add_task(closure)
         })
         .collect::<Vec<_>>();
 
